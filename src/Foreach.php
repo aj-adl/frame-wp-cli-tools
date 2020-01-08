@@ -20,11 +20,12 @@ class Frame_CLI_Foreach {
 	protected $is_yarn_command;
 
 	/**
-	 * Runs the setup necessary for Frame CLI.
+	 * Executes commands within all (first level) child subdirectories of the current working directory
+	 *
 	 *
 	 * ## OPTIONS
 	 * <command>...
-	 * :The command to be executed in each valid directory
+	 * : The command to be executed in each valid directory
 	 *
 	 * [--exclude=<folder>]
 	 * : A string referencing one or more folders to exclude, multiples should be comma seperated
@@ -37,6 +38,21 @@ class Frame_CLI_Foreach {
 	 *   - all
 	 *   - wordpress
 	 * ---
+	 *
+	 * ## Valid Directories
+	 *
+	 * By default, the following directories will be excluded
+	 *   - Any directory starting with '_'
+	 *   - Directories matching 'logs', 'log', 'vendor', 'ignore', 'tmp'
+	 *   - Any directories passed in via --exclude
+	 *
+	 * If a directory is being excluded and you are unsure why, run with the '--debug' flag,
+	 * and you will see which condition it matched to be excluded.
+	 *
+	 * ## Project Types and Validity Testing
+	 *
+	 * Currently only 'wordpress' is supported. New project types can be submitted via PR by implementing a
+	 * 'is_${type}_project()' function, see Frame_CLI_Foreach::is_wordpress_project() for reference.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -56,7 +72,7 @@ class Frame_CLI_Foreach {
 
 		$this->parse_args( $args, $assoc_args );
 
-		//$this->load_environment();
+		//$this->load_environment();r
 
 		// Get all the possible subdirectories
 		$dirs = $this->get_sub_directories();
@@ -79,7 +95,7 @@ class Frame_CLI_Foreach {
 				$command = trim( $this->command_prefix  ) . ' ' . $command;
 			}
 
-			Output::title( $dirname );
+			Output::title( 'Directory: ' . $dirname );
 
 			WP_CLI::debug( 'Running ' . $command );
 
@@ -106,6 +122,8 @@ class Frame_CLI_Foreach {
 		$this->starting_path = getcwd();
 
 		$this->command = $args[0];
+
+		$this->type = 'all';
 
 		WP_CLI::debug( 'COMMAND: ' . $this->command );
 
@@ -184,8 +202,11 @@ class Frame_CLI_Foreach {
 			return false;
 		}
 
-		if ( $this->type === 'wordpress' ){
-			return $this->is_wordpress_project( $dirname );
+		$type = strtolower($this->type);
+		$testing_method = "is_${type}_project";
+
+		if ( $type && $type !== 'all' && method_exists( $this, $testing_method) ){
+			return $this->$testing_method( $dirname );
 		}
 
 		return true;
