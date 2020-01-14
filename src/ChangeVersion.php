@@ -55,13 +55,28 @@ class Frame_CLI_ChangeVersion {
 		$package_names = array_keys( $packages );
 
 		if ( array_search( $this->package, $package_names ) === false ){
-			WP_CLI::error( "Package '$this->package' does not exist within section '$this->section_key' in ${slashed_path}composer.json  ");
+			WP_CLI::error( "Package '$this->package' does not exist within section '$this->section_key' in ${slashed_path}composer.json " );
 		}
 
 		$composer_info[ $this->section_key ][ $this->package ] = $this->version_string;
 
-		$result = file_put_contents( $slashed_path . 'composer.json', $composer_info );
+		// Remove any empty sections from composer.json, as they will get output in the wrong format.
+		foreach( $composer_info as $key => $value ){
 
+			if ( ! empty( $value ) ) continue;
+
+			unset( $composer_info[ $key ] );
+		}
+
+		$result = file_put_contents( $slashed_path . 'composer.json', json_encode( $composer_info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+
+		if ( $result === false ){
+			WP_CLI::error( "Error replacing file in ${slashed_path}composer.json, changes not saved" );
+		}
+
+		$colorized_version = WP_CLI::colorize( "%G$this->version_string%n" );
+
+		WP_CLI::success( "Package '$this->package' in section '$this->section_key' is now set to ${colorized_version} in ${slashed_path}composer.json " );
 	}
 
 }
