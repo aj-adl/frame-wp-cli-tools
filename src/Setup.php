@@ -7,10 +7,8 @@ class Frame_CLI_Setup {
 	 * Runs the setup necessary for Frame CLI.
 	 *
 	 * ## OPTIONS
-	 * <command>
-	 * :The command to be executed in each valid directory
 	 *
-	 * [--exclude=<folder>]
+	 * [--folder=<folder>]
 	 * : Whether or not to greet the person with success or error.
 	 *
 	 * ## EXAMPLES
@@ -21,7 +19,16 @@ class Frame_CLI_Setup {
 	 */
 	public function __invoke( $args = [], $assoc_args = []  ){
 
-		WP_CLI\Utils\format_items( 'table', $assoc_args, [] );
+		$input = [];
+
+		foreach( $assoc_args as $key => $value ) {
+			$input[] = [
+				'key' => $key,
+				'value' => $value,
+			];
+		}
+
+		WP_CLI\Utils\format_items( 'table', $input, [ 'key', 'value' ] );
 	}
 
 }

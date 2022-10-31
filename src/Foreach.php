@@ -17,7 +17,7 @@ class Frame_CLI_Foreach {
 
 	protected $is_git_command;
 
-	protected $is_yarn_command;
+	protected $is_node_command;
 
 	/**
 	 * Executes commands within all (first level) child subdirectories of the current working directory
@@ -154,8 +154,8 @@ class Frame_CLI_Foreach {
 			WP_CLI::debug( 'IS GIT COMMAND' );
 		}
 
-		if ( stristr( $this->command, 'yarn' ) ){
-			$this->is_yarn_command = true;
+		if ( stristr( $this->command, 'yarn' ) || stristr( $this->command, 'yarn' ) ){
+			$this->is_node_command = true;
 			WP_CLI::debug( 'IS YARN COMMAND' );
 		}
 
@@ -197,7 +197,7 @@ class Frame_CLI_Foreach {
 			return false;
 		}
 
-		if( $this->is_yarn_command && ! file_exists( $slashed_path . 'package.json' ) ){
+		if( $this->is_node_command && ! file_exists( $slashed_path . 'package.json' ) ){
 			WP_CLI::warning( $dirname . ' will be excluded [ Condition: no package.json when running yarn commands ]' );
 			return false;
 		}
